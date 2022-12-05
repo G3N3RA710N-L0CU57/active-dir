@@ -2,5 +2,5 @@
 
 NTLM hashes from local SAM.
 
-`mimikatz # privilege::debug`  
-`mimikatz # token::elevate`
+`mimikatz # privilege::debug
+mimikatz # token::elevate`
