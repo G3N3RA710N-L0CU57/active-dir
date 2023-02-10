@@ -1,5 +1,66 @@
 # Active Directory
 
+## Net commands  
+
+Local user accounts.  
+
+`net user`  
+
+All domain user accounts with /domain flag.  
+
+`net user /domain`  
+
+Display information about a specific user.  
+
+`net user bob_admin /domain`  
+
+Enumerate all groups on the domain.  
+
+`net group /domain`  
+
+## Users  
+
+Powershell script to collect all users.  
+
+```
+$domainObj = [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain()
+
+$PDC = ($domainObj.PdcRoleOwner).Name
+
+$SearchString = "LDAP://"
+
+$SearchString += $PDC + "/"
+
+$DistinguishedName = "DC=$($domainObj.Name.Replace('.', ',DC='))"
+
+$SearchString += $DistinguishedName
+
+$Searcher = New-Object System.DirectoryServices.DirectorySearcher([ADSI]$SearchString)
+
+$objDomain = New-Object System.DirectoryServices.DirectoryEntry
+
+$Searcher.SearchRoot = $objDomain
+
+$Searcher.filter="samAccountType=805306368"
+
+$Result = $Searcher.FindAll()
+
+Foreach($obj in $Result)
+{
+    Foreach($prop in $obj.Properties)
+    {
+        $prop
+    }
+    
+    Write-Host "------------------------"
+}
+
+```
+
+
+
+## NTLM hash
+
 NTLM hashes from local SAM.
 
     mimikatz # privilege::debug
