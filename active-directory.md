@@ -121,6 +121,19 @@ Foreach($obj in $Result)
 
 ```  
 
+## Logged on users  
+
+Importing and using powerview to enumerate logged on users.  
+
+```
+Import-Module .\PowerView.ps1
+Get-NetLoggedon -ComputerName client251
+```  
+
+Get active sessions, in this case from domain controller.  
+
+`Get-NetSession -ComputerName dc01`  
+
 
 
 
