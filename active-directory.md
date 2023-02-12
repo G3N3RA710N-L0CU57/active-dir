@@ -135,9 +135,49 @@ Get active sessions, in this case from domain controller.
 `Get-NetSession -ComputerName dc01`  
 
 
+## Service principal names  
+
+By enumerating spn, we can obtain ip and port numbers of applications running on servers integrated in the AD network, the output can then be used to resolve with nslookup.  
+To search for http web servers.  
+
+```
+$domainObj = [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain()
+
+$PDC = ($domainObj.PdcRoleOwner).Name
+
+$SearchString = "LDAP://"
+$SearchString += $PDC + "/"
+
+$DistinguishedName = "DC=$($domainObj.Name.Replace('.', ',DC='))"
+
+$SearchString += $DistinguishedName
+
+$Searcher = New-Object System.DirectoryServices.DirectorySearcher([ADSI]$SearchString)
+
+$objDomain = New-Object System.DirectoryServices.DirectoryEntry
+
+$Searcher.SearchRoot = $objDomain
+
+$Searcher.filter="serviceprincipalname=*http*"
+
+$Result = $Searcher.FindAll()
+
+Foreach($obj in $Result)
+{
+    Foreach($prop in $obj.Properties)
+    {
+        $prop
+    }
+}
+```  
 
 
-## NTLM hash
+
+## NTLM hash  
+
+NTLM is used when authenticating to a server with an ip address rather than by hostname or if the AD DNS couldnt resolve a hostname.  
+
+
 
 NTLM hashes from local SAM.
 
