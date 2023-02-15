@@ -56,6 +56,18 @@ Foreach($obj in $Result)
 }
 
 ```
+
+## Groups  
+
+Get all members of administrator group.  
+
+`Get-ADGroupMember -Identity administrators`  
+
+Find if group is a member of another group.  
+
+`Get-ADGroup 'service accounts' -Property memberof`  
+
+
 ## Nested groups  
 
 Using the script to enumerate groups.  
